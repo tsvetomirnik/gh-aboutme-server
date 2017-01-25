@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 
 var storage = require('node-persist');
 storage.initSync({
-  dir: 'persist',
+  dir: 'storage',
   stringify: JSON.stringify,
   parse: JSON.parse,
   encoding: 'utf8',
@@ -16,6 +16,13 @@ var app = express();
 module.exports = app;
 
 app.set('storage', storage);
+
+app.set('config', {
+  gitHub: {
+    clientID: process.env.GITHUB_CLIENT_ID || 123,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET || 1234,
+  }
+});
 
 app.use(logger('dev'));
 app.use(bodyParser.json());

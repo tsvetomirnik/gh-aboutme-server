@@ -2,11 +2,24 @@
 
 var request = require('request');
 
-var githubApi = {
-    host: 'http://api.github.com',
+class GitHubApi {
 
-    getUser: (username, callback) => {
-        const requestUrl = githubApi.host + '/users/' + username;
+    constructor(options) {
+        this.host = 'http://api.github.com';
+        this.clientID = options.clientID;
+        this.clientSecret = options.clientSecret;
+    }
+
+    getClientParams() {
+        var params = '';
+        if (this.clientID && this.clientSecret) {
+            params = `?client_id=${this.clientID}&client_secret=${this.clientSecret}`;
+        }
+        return params;
+    }
+
+    getUser(username, callback) {
+        const requestUrl = `${this.host}/users/${username}` + this.getClientParams();
         request({
             url: requestUrl,
             headers: {
@@ -14,10 +27,12 @@ var githubApi = {
             }
         }, (error, response, body) => {
             if (!error && response.statusCode == 200) {
-                callback(JSON.parse(body));
+                callback(error, response, body);
             }
         });
-    },
-};
+    }
+}
 
-module.exports = githubApi;
+module.exports = (options) => {
+    return new GitHubApi(options)
+};

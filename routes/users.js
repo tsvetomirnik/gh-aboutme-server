@@ -2,7 +2,7 @@
 
 var express = require('express');
 var app = require('../app');
-var githubApi = require('../github-api');
+var gitHubApi = require('../github-api')(app.get('config').gitHub);
 var cache = require('../cache');
 var router = express.Router();
 
@@ -15,7 +15,9 @@ router.get('/:username', (req, res, next) => {
             res.json(cachedUser);
         } else {
             console.log(`Response from github for user ${username}.`);
-            githubApi.getUser(username, (user) => {
+            gitHubApi.getUser(username, (error, response, body) => {
+                console.log(`Rate limit: ${response.headers['x-ratelimit-remaining']} of ${response.headers['x-ratelimit-limit']} remains.`);
+                let user = JSON.parse(body);
                 cache.setUser(username, user, () => {
                     res.json(user);
                 });
