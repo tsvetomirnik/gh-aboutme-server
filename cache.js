@@ -1,43 +1,42 @@
-'use strict';
+"use strict";
 
-let app = require('./app');
-let storage = app.get('storage');
+const app = require("./app");
+const storage = app.get("storage");
 
-var cache = {
-    _getUserKey: (username) => {
-        return 'users/' + username;
-    },
+const cache = {
+  _getUserKey: (username) => {
+    return `users/${username}`;
+  },
 
-    _isUserExpired: (record) => {
-        const hours = Math.abs((new Date()).getTime() - (new Date(record.createdAt)).getTime()) / 36e5;
-        return hours > 24;
-    },
+  _hasRecordCacheExpired: (record) => {
+    const now = new Date();
+    const createdDate = new Date(record.createdAt);
+    const hoursDiff = Math.abs(now.getTime() - createdDate.getTime()) / 3600000;
+    return hoursDiff > 24;
+  },
 
-    setUser: (username, user, callback) => {
-        const key = cache._getUserKey(username);
+  setUser: (username, user, callback) => {
+    const key = this._getUserKey(username);
 
-        let record = {
-            data: user,
-            createdAt: new Date()
-        };
+    const record = {
+      data: user,
+      createdAt: new Date(),
+    };
 
-        storage.setItem(key, record, (err) => {
-            callback();
-        });
-    },
+    storage.setItem(key, record, () => callback());
+  },
 
-    getUser: (username, callback) => {
-        const key = cache._getUserKey(username);
+  getUser: (username, callback) => {
+    const key = this._getUserKey(username);
 
-        storage.getItem(key, (err, record) => {
-            if (record && !cache._isUserExpired(record)) {
-                callback(record.data);
-            } else {
-                callback(null);
-            }
-        });
-    },
-
+    storage.getItem(key, (err, record) => {
+      if (record && !this._hasRecordCacheExpired(record)) {
+        callback(record.data);
+      } else {
+        callback(null);
+      }
+    });
+  },
 };
 
 module.exports = cache;
